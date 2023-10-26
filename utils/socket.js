@@ -1,5 +1,5 @@
 import io from "socket.io-client";
-const socket = io("http://localhost:3000",{
+const socket = io("https://3.110.128.27.nip.io",{
   transports: ["websocket"]
 });
 

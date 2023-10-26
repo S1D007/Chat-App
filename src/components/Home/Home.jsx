@@ -63,6 +63,7 @@ const Home = () => {
         message: currentMessage,
         chat_id: currentChat._id,
         user_id: user._id,
+        username: user.username,
       });
     }
   };
@@ -256,7 +257,7 @@ const Home = () => {
                             <h1 className="text-sm font-semibold" style={{
                               alignSelf: message.user._id === user._id ? "flex-end" : "flex-start",
                             }} >
-                              {message.user.username.toString()}
+                              {message.user.username}
                             </h1>
                           )
                         }
