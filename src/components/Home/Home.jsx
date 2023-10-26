@@ -252,22 +252,22 @@ const Home = () => {
                         className="my-2 flex flex-col items-start"
                       >
                         {
-                          message.user._id !== user._id && (
+                          message.?user._id !== user._id && (
                             <h1 className="text-sm font-semibold" style={{
-                              alignSelf: message.user._id === user._id ? "flex-end" : "flex-start",
+                              alignSelf: message?.user._id === user._id ? "flex-end" : "flex-start",
                             }} >
-                              {message.user.username.toString()}
+                              {message?.user?.username}
                             </h1>
                           )
                         }
                         <div className="bg-blue-500 text-white max-w-xs py-2 px-4 rounded-lg mb-2" style={{
-                          alignSelf: message.user._id === user._id ? "flex-end" : "flex-start",
-                          backgroundColor: message.user._id === user._id ? "#3B82F6" : "#000",
+                          alignSelf: message?.user._id === user._id ? "flex-end" : "flex-start",
+                          backgroundColor: message?.user._id === user._id ? "#3B82F6" : "#000",
                         }} >
                           {message?.message}
                         </div>
                         <p className="text-xs text-gray-500" style={{
-                          alignSelf: message.user._id === user._id ? "flex-end" : "flex-start",
+                          alignSelf: message?.user._id === user._id ? "flex-end" : "flex-start",
                         }} >
                           {new Date(message.timestamp).toLocaleString()}
                         </p>
