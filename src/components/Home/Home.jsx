@@ -252,7 +252,7 @@ const Home = () => {
                         className="my-2 flex flex-col items-start"
                       >
                         {
-                          message.?user._id !== user._id && (
+                          message?.user._id !== user._id && (
                             <h1 className="text-sm font-semibold" style={{
                               alignSelf: message?.user._id === user._id ? "flex-end" : "flex-start",
                             }} >
