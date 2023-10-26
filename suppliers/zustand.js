@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import axios from "axios";
 import { toast } from "react-toastify";
+import socket from "../utils/socket";
 
 const BACKEND_URL = "https://3.110.128.27.nip.io";
 
@@ -149,12 +150,16 @@ export const useStore = create((set, get) => ({
                 members,
             });
             toast.success("Chat created successful");
+            socket.emit("new chat", {
+                my_user_id: members[1],
+                user_id: members[0],
+                type: "individual",
+            })
             // remove the users from the users list and add the chat to the chats list
             const users = useStore.getState().users
             const chats = useStore.getState().chats
             const newUsers = users.filter(user => user._id !== members[0])
             const newChats = [...chats, res.data.message]
-            console.log(newChats)
             set({
                 users: newUsers,
                 chats: newChats
@@ -171,6 +176,11 @@ export const useStore = create((set, get) => ({
                 name
             });
             toast.success("Chat created successful");
+            socket.emit("new chat", {
+                my_user_id: members[1],
+                user_id: members[0],
+                type: "group",
+            })
             // remove the users from the users list and add the chat to the chats list
             const chats = useStore.getState().chats
             const newChats = [...chats, res.data.message]
@@ -182,4 +192,9 @@ export const useStore = create((set, get) => ({
             toast.error(e.message);
         }
     },
+    updateUsers: (users) => {
+        set({
+            users,
+        });
+    }
 }));

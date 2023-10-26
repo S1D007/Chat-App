@@ -14,6 +14,8 @@ const Home = () => {
     getChats,
     availableUsers,
     createChatGroup,
+    updateUsers,
+    getUsers,
   } = useStore();
   const [messages, setMessages] = useState([]);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -22,6 +24,11 @@ const Home = () => {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [groupChatName, setGroupChatName] = useState("");
+
+  useEffect(() => {
+    socket.emit("join me", user?._id);
+  }, [user]);
+
   useEffect(() => {
     socket.emit("joinRoom", currentChat?._id);
     if (currentChat) {
@@ -34,17 +41,39 @@ const Home = () => {
 
   useEffect(() => {
     socket.on("message", (message) => {
-      setMessages((prevMessages) => [...prevMessages, {
-        message: message.message,
-        timestamp: message.timestamp,
-        user: {
-          _id: message.user_id,
-          username: message.username,
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          message: message.message,
+          timestamp: message.timestamp,
+          user: {
+            _id: message.user_id,
+            username: message.username,
+          },
         },
-      }]);
+      ]);
     });
+
+    socket.on("new message", ({ user_id }) => {
+      getChats();
+    })
+
   }, []);
-  
+
+  useEffect(() => {
+    if (user) {
+      socket.on("new chat", ({user_id, type}) => {
+        if (type === "individual") {
+          getUsers();
+          getChats();
+        } else {
+          alert("New group chat created");
+          getChats();
+        }
+      });
+    }
+  }, [user]);
+
   const handleSendMessage = () => {
     if (currentMessage.trim() !== "") {
       setMessages((prevMessages) => [
@@ -65,6 +94,12 @@ const Home = () => {
         user_id: user._id,
         username: user.username,
       });
+      socket.emit("new message", {
+        my_user_id: user._id,
+        user_id: currentChat.members.filter(
+          (member) => member._id !== user._id
+        )[0]._id,
+      });
     }
   };
 
@@ -75,7 +110,6 @@ const Home = () => {
       handleSendMessage();
     }
   };
-
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -205,9 +239,7 @@ const Home = () => {
                     className="flex flex-row items-center space-x-2"
                   >
                     <div className="w-12 h-12 rounded-full bg-red-300 flex justify-center items-center font-bold">
-                      {
-                        chat?.name ? "Grp" : undefined
-                      }
+                      {chat?.name ? "Grp" : undefined}
                     </div>
                     <h1 className="text-lg font-semibold">
                       {chat.name ?? chat.members[0].username}
@@ -229,13 +261,13 @@ const Home = () => {
                   <h2 className="text-2xl font-semibold text-gray-800">
                     {currentChat?.name ?? currentChat?.members[0].username}
                   </h2>
-                  {
-                    currentChat?.name ? (
-                      <h3 className="text-lg font-semibold text-gray-800">
-                        {currentChat?.members.map((member) => member.username).join(", ")}
-                      </h3>
-                    ) : undefined
-                  }
+                  {currentChat?.name ? (
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      {currentChat?.members
+                        .map((member) => member.username)
+                        .join(", ")}
+                    </h3>
+                  ) : undefined}
                 </div>
               </div>
 
@@ -245,37 +277,47 @@ const Home = () => {
                 className="flex-1 p-4 overflow-y-auto"
                 style={{ maxHeight: "calc(100vh - 350px)" }}
               >
-                {messages?.map(
-                  (message, index) => (
-                    (
-                      <div
-                        key={index}
-                        className="my-2 flex flex-col items-start"
+                {messages?.map((message, index) => (
+                  <div key={index} className="my-2 flex flex-col items-start">
+                    {message.user._id !== user._id && (
+                      <h1
+                        className="text-sm font-semibold"
+                        style={{
+                          alignSelf:
+                            message.user._id === user._id
+                              ? "flex-end"
+                              : "flex-start",
+                        }}
                       >
-                        {
-                          message.user._id !== user._id && (
-                            <h1 className="text-sm font-semibold" style={{
-                              alignSelf: message.user._id === user._id ? "flex-end" : "flex-start",
-                            }} >
-                              {message.user.username}
-                            </h1>
-                          )
-                        }
-                        <div className="bg-blue-500 text-white max-w-xs py-2 px-4 rounded-lg mb-2" style={{
-                          alignSelf: message.user._id === user._id ? "flex-end" : "flex-start",
-                          backgroundColor: message.user._id === user._id ? "#3B82F6" : "#000",
-                        }} >
-                          {message?.message}
-                        </div>
-                        <p className="text-xs text-gray-500" style={{
-                          alignSelf: message.user._id === user._id ? "flex-end" : "flex-start",
-                        }} >
-                          {new Date(message.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    )
-                  )
-                )}
+                        {message.user.username}
+                      </h1>
+                    )}
+                    <div
+                      className="bg-blue-500 text-white max-w-xs py-2 px-4 rounded-lg mb-2"
+                      style={{
+                        alignSelf:
+                          message.user._id === user._id
+                            ? "flex-end"
+                            : "flex-start",
+                        backgroundColor:
+                          message.user._id === user._id ? "#3B82F6" : "#000",
+                      }}
+                    >
+                      {message?.message}
+                    </div>
+                    <p
+                      className="text-xs text-gray-500"
+                      style={{
+                        alignSelf:
+                          message.user._id === user._id
+                            ? "flex-end"
+                            : "flex-start",
+                      }}
+                    >
+                      {new Date(message.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
               </div>
 
               {/* Message input */}
