@@ -3,7 +3,7 @@ import { create } from "zustand";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const BACKEND_URL = "https://3.109.181.36.nip.io";
+const BACKEND_URL = "https://3.110.128.27.nip.io";
 
 const api = axios.create({
     baseURL: BACKEND_URL,
